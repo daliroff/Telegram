@@ -9,7 +9,7 @@ from datetime import datetime
 # =============================================
 #  SOZLAMALAR — shu yerdan o'zgartiring
 # =============================================
-BOT_TOKEN   = os.getenv("LOVE_BOT_TOKEN", "YOUR_BOT_TOKEN_HERE")
+BOT_TOKEN   = os.getenv("LOVE_BOT_TOKEN", "8318411292:AAEQyfUEe5dqaAg5IvZJBxr2Lsd88XRLass")
 LOVER_CHAT_ID = os.getenv("LOVER_CHAT_ID", "YOUR_LOVER_CHAT_ID_HERE")
 
 MORNING_TIME  = "08:00"   # Ertalabki xabar vaqti
