@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CS2 Tracker — Tournaments &amp; Betting Log</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-mark">CS2</span>
+      <span class="brand-name">Tracker</span>
+    </div>
+    <nav class="tabs" id="tabs">
+      <button class="tab is-active" data-tab="dashboard">Dashboard</button>
+      <button class="tab" data-tab="tournaments">Tournaments</button>
+      <button class="tab" data-tab="matches">Matches</button>
+      <button class="tab" data-tab="bets">Bets</button>
+      <button class="tab" data-tab="winners">Winners</button>
+    </nav>
+    <div class="topbar-actions">
+      <button class="icon-btn" id="menuBtn" aria-haspopup="true" aria-expanded="false" title="Data settings">⋮</button>
+      <div class="menu" id="dataMenu" hidden>
+        <button data-action="export">Export data (.json)</button>
+        <button data-action="import">Import data (.json)</button>
+        <button data-action="seed">Load sample data</button>
+        <button data-action="reset" class="menu-danger">Erase all data</button>
+      </div>
+      <input type="file" id="importFile" accept="application/json" hidden>
+    </div>
+  </div>
+</header>
+
+<main class="app">
+
+  <!-- DASHBOARD -->
+  <section class="view is-active" id="view-dashboard">
+    <div class="record-card">
+      <div class="record-score">
+        <div class="record-num win" id="recWins">0</div>
+        <div class="record-sep">–</div>
+        <div class="record-num loss" id="recLosses">0</div>
+      </div>
+      <div class="record-labels">
+        <span class="record-label win">WINS</span>
+        <span class="record-label loss">LOSSES</span>
+      </div>
+      <div class="record-bar" id="recordBar">
+        <div class="record-bar-seg win" id="recordBarWin"></div>
+        <div class="record-bar-seg loss" id="recordBarLoss"></div>
+      </div>
+      <div class="record-meta">
+        <span id="recordStreak">No bets settled yet</span>
+        <span id="recordPending">0 pending</span>
+      </div>
+    </div>
+
+    <div class="stat-grid" id="statGrid"></div>
+
+    <div class="dash-columns">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Upcoming &amp; live matches</h2>
+          <button class="link-btn" data-goto="matches">View all</button>
+        </div>
+        <div id="upcomingList" class="mini-list"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Recent bets</h2>
+          <button class="link-btn" data-goto="bets">View all</button>
+        </div>
+        <div id="recentBetsList" class="mini-list"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TOURNAMENTS -->
+  <section class="view" id="view-tournaments">
+    <div class="view-head">
+      <h1>Tournaments</h1>
+      <button class="btn btn-primary" data-open="dlgTournament">+ Add tournament</button>
+    </div>
+    <div class="card-grid" id="tournamentGrid"></div>
+  </section>
+
+  <!-- MATCHES -->
+  <section class="view" id="view-matches">
+    <div class="view-head">
+      <h1>Matches</h1>
+      <div class="head-controls">
+        <select id="matchTournamentFilter" class="select"></select>
+        <select id="matchStatusFilter" class="select">
+          <option value="">All statuses</option>
+          <option value="upcoming">Upcoming</option>
+          <option value="live">Live</option>
+          <option value="completed">Completed</option>
+        </select>
+        <button class="btn btn-primary" data-open="dlgMatch">+ Add match</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table class="data-table" id="matchesTable">
+        <thead>
+          <tr>
+            <th>Tournament</th><th>Match</th><th>Format</th><th>Date</th>
+            <th>Status</th><th>Score</th><th></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <p class="empty-state" id="matchesEmpty" hidden>No matches yet. Add a tournament first, then add matches to it.</p>
+    </div>
+  </section>
+
+  <!-- BETS -->
+  <section class="view" id="view-bets">
+    <div class="view-head">
+      <h1>Bets</h1>
+    </div>
+
+    <form class="panel bet-form" id="betForm">
+      <h2>Place a bet</h2>
+      <div class="form-grid">
+        <label>Match
+          <select id="betMatch" required></select>
+        </label>
+        <label>Pick
+          <select id="betPick" required></select>
+        </label>
+        <label>Stake
+          <input type="number" id="betStake" min="0.01" step="0.01" placeholder="e.g. 10" required>
+        </label>
+        <label>Odds (decimal)
+          <input type="number" id="betOdds" min="1.01" step="0.01" placeholder="e.g. 1.85" required>
+        </label>
+      </div>
+      <div class="bet-preview" id="betPreview">Potential payout: <strong>—</strong></div>
+      <button type="submit" class="btn btn-primary">Place bet</button>
+      <p class="empty-state" id="betFormEmpty" hidden>Add an upcoming or live match before placing a bet.</p>
+    </form>
+
+    <div class="table-wrap">
+      <table class="data-table" id="betsTable">
+        <thead>
+          <tr>
+            <th>Match</th><th>Tournament</th><th>Pick</th><th>Stake</th><th>Odds</th>
+            <th>Payout</th><th>Status</th><th>P/L</th><th></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <p class="empty-state" id="betsEmpty" hidden>No bets placed yet.</p>
+    </div>
+  </section>
+
+  <!-- WINNERS -->
+  <section class="view" id="view-winners">
+    <div class="view-head">
+      <h1>Results &amp; actual winners</h1>
+    </div>
+    <div class="table-wrap">
+      <table class="data-table" id="winnersTable">
+        <thead>
+          <tr>
+            <th>Date</th><th>Tournament</th><th>Match</th><th>Final score</th>
+            <th>Actual winner</th><th>Your bet</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <p class="empty-state" id="winnersEmpty" hidden>No completed matches yet.</p>
+    </div>
+  </section>
+
+</main>
+
+<!-- DIALOG: Add Tournament -->
+<dialog id="dlgTournament" class="dialog">
+  <form method="dialog" class="dialog-form" id="formTournament">
+    <h2>Add tournament</h2>
+    <label>Name
+      <input type="text" id="tName" placeholder="e.g. IEM Katowice" required>
+    </label>
+    <label>Organizer
+      <input type="text" id="tOrganizer" placeholder="e.g. ESL">
+    </label>
+    <div class="form-grid">
+      <label>Start date
+        <input type="date" id="tStart">
+      </label>
+      <label>End date
+        <input type="date" id="tEnd">
+      </label>
+    </div>
+    <label>Prize pool (USD)
+      <input type="number" id="tPrize" min="0" step="1000" placeholder="e.g. 1000000">
+    </label>
+    <div class="dialog-actions">
+      <button type="button" class="btn btn-ghost" data-close>Cancel</button>
+      <button type="submit" class="btn btn-primary">Save tournament</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- DIALOG: Add Match -->
+<dialog id="dlgMatch" class="dialog">
+  <form method="dialog" class="dialog-form" id="formMatch">
+    <h2>Add match</h2>
+    <label>Tournament
+      <select id="mTournament" required></select>
+    </label>
+    <div class="form-grid">
+      <label>Team A
+        <input type="text" id="mTeamA" placeholder="e.g. Vitality" required>
+      </label>
+      <label>Team B
+        <input type="text" id="mTeamB" placeholder="e.g. NAVI" required>
+      </label>
+    </div>
+    <div class="form-grid">
+      <label>Format
+        <select id="mFormat">
+          <option>BO1</option>
+          <option selected>BO3</option>
+          <option>BO5</option>
+        </select>
+      </label>
+      <label>Date
+        <input type="date" id="mDate">
+      </label>
+    </div>
+    <label>Status
+      <select id="mStatus">
+        <option value="upcoming" selected>Upcoming</option>
+        <option value="live">Live</option>
+      </select>
+    </label>
+    <div class="dialog-actions">
+      <button type="button" class="btn btn-ghost" data-close>Cancel</button>
+      <button type="submit" class="btn btn-primary">Save match</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- DIALOG: Set Result -->
+<dialog id="dlgResult" class="dialog">
+  <form method="dialog" class="dialog-form" id="formResult">
+    <h2>Set match result</h2>
+    <p class="dialog-sub" id="resultMatchLabel"></p>
+    <label>Actual winner
+      <select id="rWinner" required></select>
+    </label>
+    <div class="form-grid">
+      <label id="rScoreALabel">Score A
+        <input type="number" id="rScoreA" min="0" step="1" required>
+      </label>
+      <label id="rScoreBLabel">Score B
+        <input type="number" id="rScoreB" min="0" step="1" required>
+      </label>
+    </div>
+    <div class="dialog-actions">
+      <button type="button" class="btn btn-ghost" data-close>Cancel</button>
+      <button type="submit" class="btn btn-primary">Confirm result</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="app.js"></script>
+</body>
+</html>
